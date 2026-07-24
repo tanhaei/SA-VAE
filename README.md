@@ -290,9 +290,6 @@ git remote add origin https://github.com/YOUR_ACCOUNT/savae-ehr-imputation.git
 git push -u origin main
 ```
 
-Before publishing, replace the placeholder author/repository fields in
-`CITATION.cff`.
-
 ## License
 
 Code is released under the MIT License. Dataset licenses and institutional
