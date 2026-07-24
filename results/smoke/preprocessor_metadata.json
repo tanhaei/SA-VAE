@@ -1,0 +1,129 @@
+{
+  "output_dimension": 29,
+  "text_dimension": 12,
+  "continuous_indices": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "categorical_slices": [
+    [
+      4,
+      7
+    ],
+    [
+      7,
+      10
+    ],
+    [
+      10,
+      15
+    ],
+    [
+      15,
+      22
+    ],
+    [
+      22,
+      25
+    ],
+    [
+      25,
+      29
+    ]
+  ],
+  "feature_slices": {
+    "age": [
+      0,
+      1
+    ],
+    "iop": [
+      1,
+      2
+    ],
+    "visual_acuity": [
+      2,
+      3
+    ],
+    "followup_days": [
+      3,
+      4
+    ],
+    "sex": [
+      4,
+      7
+    ],
+    "diabetes": [
+      7,
+      10
+    ],
+    "diagnosis": [
+      10,
+      15
+    ],
+    "medication": [
+      15,
+      22
+    ],
+    "surgery": [
+      22,
+      25
+    ],
+    "followup_status": [
+      25,
+      29
+    ]
+  },
+  "categories": {
+    "sex": [
+      "female",
+      "male",
+      "__UNK__"
+    ],
+    "diabetes": [
+      "0",
+      "1",
+      "__UNK__"
+    ],
+    "diagnosis": [
+      "cataract",
+      "diabetic_retinopathy",
+      "glaucoma",
+      "normal",
+      "__UNK__"
+    ],
+    "medication": [
+      "anti_vegf",
+      "latanoprost",
+      "lubricant",
+      "none",
+      "steroid",
+      "timolol",
+      "__UNK__"
+    ],
+    "surgery": [
+      "no",
+      "yes",
+      "__UNK__"
+    ],
+    "followup_status": [
+      "discharged",
+      "routine",
+      "urgent",
+      "__UNK__"
+    ]
+  },
+  "means": {
+    "age": 54.4525506659002,
+    "iop": 17.690004202570933,
+    "visual_acuity": 0.4250306873425411,
+    "followup_days": 49.71330386646765
+  },
+  "stds": {
+    "age": 12.696816737248803,
+    "iop": 3.735442550949297,
+    "visual_acuity": 0.2329733438577956,
+    "followup_days": 19.775343623841774
+  }
+}

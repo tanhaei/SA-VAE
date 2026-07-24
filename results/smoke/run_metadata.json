@@ -1,0 +1,33 @@
+{
+  "status": "completed",
+  "elapsed_seconds": 2.000668613000016,
+  "python": "3.12.13 (main, Mar  3 2026, 14:59:34) [Clang 21.1.4 ]",
+  "platform": "Linux-6.12.13-x86_64-with-glibc2.39",
+  "versions": {
+    "numpy": "2.3.5",
+    "pandas": "2.2.3",
+    "scipy": "1.17.0",
+    "scikit_learn": "1.8.0"
+  },
+  "vae_parameter_count": 2897,
+  "vae_best_epoch": 17,
+  "metric_rows": 576,
+  "methods": [
+    "gradient_boosting",
+    "knn",
+    "mean_mode",
+    "plain_vae",
+    "plain_vae_structured",
+    "random_forest",
+    "sa_vae",
+    "sa_vae_structured"
+  ],
+  "mechanisms": [
+    "mar",
+    "mcar",
+    "mnar"
+  ],
+  "structured_vae_best_epoch": 16,
+  "skipped_methods": {},
+  "result_scope": "Synthetic smoke-test output unless data.source points to an authorized MIMIC-IV or BioArc extract. It is not a reproduction of manuscript numbers."
+}

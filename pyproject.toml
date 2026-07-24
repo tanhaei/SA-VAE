@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "savae-ehr-imputation"
+version = "0.1.0"
+description = "Reproducible similarity-augmented VAE experiments for mixed-type EHR imputation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+  {name = "Paper authors and contributors"}
+]
+keywords = [
+  "electronic-health-records",
+  "missing-data",
+  "variational-autoencoder",
+  "patient-similarity",
+  "imputation"
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+dependencies = [
+  "numpy>=1.26,<3",
+  "pandas>=2.0,<3",
+  "scikit-learn>=1.4,<2",
+  "scipy>=1.11,<2",
+  "PyYAML>=6,<7",
+  "matplotlib>=3.8,<4"
+]
+
+[project.optional-dependencies]
+full = [
+  "xgboost>=2.0,<4",
+  "torch>=2.2,<3",
+  "transformers>=4.40,<6"
+]
+dev = [
+  "pytest>=8,<10",
+  "ruff>=0.6,<1"
+]
+
+[project.scripts]
+savae = "savae.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+

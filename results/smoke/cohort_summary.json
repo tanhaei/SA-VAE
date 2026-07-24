@@ -1,0 +1,36 @@
+{
+  "total_records": 160,
+  "total_patients": 80,
+  "partitions": {
+    "train": {
+      "records": 112,
+      "patients": 56
+    },
+    "validation": {
+      "records": 24,
+      "patients": 12
+    },
+    "test": {
+      "records": 24,
+      "patients": 12
+    }
+  },
+  "natural_missing_fraction": {
+    "age": 0.0375,
+    "iop": 0.0375,
+    "visual_acuity": 0.03125,
+    "followup_days": 0.0375,
+    "sex": 0.0375,
+    "diabetes": 0.0375,
+    "diagnosis": 0.025,
+    "medication": 0.05,
+    "surgery": 0.04375,
+    "followup_status": 0.09375
+  },
+  "targets": [
+    "iop",
+    "visual_acuity",
+    "diagnosis",
+    "followup_status"
+  ]
+}

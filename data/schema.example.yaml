@@ -1,0 +1,20 @@
+patient_id: patient_id
+note_text: note_text
+continuous:
+  - age
+  - iop
+  - visual_acuity
+  - followup_days
+categorical:
+  - sex
+  - diabetes
+  - diagnosis
+  - medication
+  - surgery
+  - followup_status
+targets:
+  - iop
+  - visual_acuity
+  - diagnosis
+  - followup_status
+

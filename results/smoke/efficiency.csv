@@ -1,0 +1,9 @@
+method,training_seconds,mean_inference_seconds_per_test_partition,median_inference_seconds_per_test_partition,parameter_count,process_peak_rss_mb,training_note
+gradient_boosting,0.39226002800023707,0.007198559999930391,0.006996261499807588,,159.0625,one supervised model per target
+knn,0.0,0.0018067493333546736,0.0017057249997378676,,159.0625,lazy donor lookup
+mean_mode,0.001793123000425112,3.053383352380479e-05,2.9148000066925306e-05,,159.0625,summary-statistic fit
+plain_vae,0.06796309899982589,0.00027626533331689035,0.000269320999905176,2897.0,159.0625,shared VAE training; methods differ only at imputation
+plain_vae_structured,0.06539763300042978,0.00026983366660715546,0.00026878449989453657,2609.0,159.0625,shared structured-only VAE training
+random_forest,0.21276482000030228,0.011134491333450569,0.01102911900034087,,159.0625,one supervised model per target
+sa_vae,0.06796309899982589,0.002232971000012185,0.0022229804999369662,2897.0,159.0625,shared VAE training; methods differ only at imputation
+sa_vae_structured,0.06539763300042978,0.0020879239999279284,0.0020527504998426593,2609.0,159.0625,shared structured-only VAE training

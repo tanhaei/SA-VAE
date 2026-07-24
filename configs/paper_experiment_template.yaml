@@ -1,0 +1,90 @@
+seed: 17
+
+data:
+  # Create one config per authorized dataset (MIMIC-IV and BioArc).
+  source: csv
+  path: ../data/private/REPLACE_WITH_AUTHORIZED_EXTRACT.csv
+  split:
+    train: 0.80
+    validation: 0.10
+    test: 0.10
+
+columns:
+  patient_id: REPLACE_PATIENT_ID_COLUMN
+  note_text: REPLACE_NOTE_COLUMN
+  continuous:
+    - REPLACE_CONTINUOUS_FIELD_1
+    - REPLACE_CONTINUOUS_FIELD_2
+  categorical:
+    - REPLACE_CATEGORICAL_FIELD_1
+    - REPLACE_CATEGORICAL_FIELD_2
+  targets:
+    - REPLACE_CONTINUOUS_FIELD_1
+    - REPLACE_CATEGORICAL_FIELD_1
+
+text:
+  # The manuscript did not identify the exact checkpoint. Verify it before use.
+  backend: clinicalbert
+  model_id: REPLACE_WITH_VERIFIED_CLINICALBERT_CHECKPOINT
+  pooling: mean
+  max_length: 256
+  batch_size: 8
+  device: cpu
+
+model:
+  # Replace candidate/selected values with settings from the experiment log.
+  hidden_dimension: 128
+  latent_dimension: 32
+  beta: 0.01
+  learning_rate: 0.001
+  batch_size: 128
+  max_epochs: 200
+  patience: 20
+  denoising_rate: 0.20
+  gradient_clip: 5.0
+
+neighbors:
+  k: 10
+  temperature: 0.20
+
+baselines:
+  knn_k: 10
+  random_forest:
+    n_estimators: 300
+    max_depth: null
+  gradient_boosting:
+    n_estimators: 300
+    max_depth: 8
+  xgboost:
+    n_estimators: 500
+    max_depth: 8
+
+ablation:
+  structured_only: true
+
+evaluation:
+  mechanisms:
+    - mcar
+    - mar
+    - mnar
+  mask_rate: 0.20
+  masking_strength: 1.25
+  repeats: 10
+  mar_drivers:
+    - REPLACE_OBSERVED_DRIVER_1
+    - REPLACE_OBSERVED_DRIVER_2
+  baselines:
+    - mean_mode
+    - knn
+    - random_forest
+    - gradient_boosting
+    - xgboost
+  skip_unavailable_baselines: false
+  explain_limit: 5
+
+output:
+  directory: results/paper_run
+
+visualization:
+  # Use a clinically meaningful categorical field present in this extract.
+  color_by: REPLACE_LATENT_PLOT_COLOR_COLUMN

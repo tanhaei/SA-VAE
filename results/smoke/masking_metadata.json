@@ -1,0 +1,218 @@
+[
+  {
+    "mechanism": "mcar",
+    "requested_rate": 0.2,
+    "seed": 20270724,
+    "strength": 1.25,
+    "targets": {
+      "iop": {
+        "eligible": 21,
+        "hidden": 7,
+        "realized_rate": 0.3333333333333333,
+        "mean_probability": 0.20000000000000004,
+        "score": "constant probability"
+      },
+      "visual_acuity": {
+        "eligible": 23,
+        "hidden": 4,
+        "realized_rate": 0.17391304347826086,
+        "mean_probability": 0.20000000000000007,
+        "score": "constant probability"
+      },
+      "diagnosis": {
+        "eligible": 24,
+        "hidden": 3,
+        "realized_rate": 0.125,
+        "mean_probability": 0.20000000000000004,
+        "score": "constant probability"
+      },
+      "followup_status": {
+        "eligible": 22,
+        "hidden": 4,
+        "realized_rate": 0.18181818181818182,
+        "mean_probability": 0.20000000000000007,
+        "score": "constant probability"
+      }
+    }
+  },
+  {
+    "mechanism": "mcar",
+    "requested_rate": 0.2,
+    "seed": 20270725,
+    "strength": 1.25,
+    "targets": {
+      "iop": {
+        "eligible": 21,
+        "hidden": 6,
+        "realized_rate": 0.2857142857142857,
+        "mean_probability": 0.20000000000000004,
+        "score": "constant probability"
+      },
+      "visual_acuity": {
+        "eligible": 23,
+        "hidden": 7,
+        "realized_rate": 0.30434782608695654,
+        "mean_probability": 0.20000000000000007,
+        "score": "constant probability"
+      },
+      "diagnosis": {
+        "eligible": 24,
+        "hidden": 2,
+        "realized_rate": 0.08333333333333333,
+        "mean_probability": 0.20000000000000004,
+        "score": "constant probability"
+      },
+      "followup_status": {
+        "eligible": 22,
+        "hidden": 6,
+        "realized_rate": 0.2727272727272727,
+        "mean_probability": 0.20000000000000007,
+        "score": "constant probability"
+      }
+    }
+  },
+  {
+    "mechanism": "mar",
+    "requested_rate": 0.2,
+    "seed": 20280724,
+    "strength": 1.25,
+    "targets": {
+      "iop": {
+        "eligible": 21,
+        "hidden": 2,
+        "realized_rate": 0.09523809523809523,
+        "mean_probability": 0.2,
+        "score": "observed drivers: ['age', 'diabetes']"
+      },
+      "visual_acuity": {
+        "eligible": 23,
+        "hidden": 3,
+        "realized_rate": 0.13043478260869565,
+        "mean_probability": 0.19999999999999998,
+        "score": "observed drivers: ['age', 'diabetes']"
+      },
+      "diagnosis": {
+        "eligible": 24,
+        "hidden": 5,
+        "realized_rate": 0.20833333333333334,
+        "mean_probability": 0.19999999999999998,
+        "score": "observed drivers: ['age', 'diabetes']"
+      },
+      "followup_status": {
+        "eligible": 22,
+        "hidden": 4,
+        "realized_rate": 0.18181818181818182,
+        "mean_probability": 0.19999999999999998,
+        "score": "observed drivers: ['age', 'diabetes']"
+      }
+    }
+  },
+  {
+    "mechanism": "mar",
+    "requested_rate": 0.2,
+    "seed": 20280725,
+    "strength": 1.25,
+    "targets": {
+      "iop": {
+        "eligible": 21,
+        "hidden": 3,
+        "realized_rate": 0.14285714285714285,
+        "mean_probability": 0.2,
+        "score": "observed drivers: ['age', 'diabetes']"
+      },
+      "visual_acuity": {
+        "eligible": 23,
+        "hidden": 8,
+        "realized_rate": 0.34782608695652173,
+        "mean_probability": 0.19999999999999998,
+        "score": "observed drivers: ['age', 'diabetes']"
+      },
+      "diagnosis": {
+        "eligible": 24,
+        "hidden": 4,
+        "realized_rate": 0.16666666666666666,
+        "mean_probability": 0.19999999999999998,
+        "score": "observed drivers: ['age', 'diabetes']"
+      },
+      "followup_status": {
+        "eligible": 22,
+        "hidden": 10,
+        "realized_rate": 0.45454545454545453,
+        "mean_probability": 0.19999999999999998,
+        "score": "observed drivers: ['age', 'diabetes']"
+      }
+    }
+  },
+  {
+    "mechanism": "mnar",
+    "requested_rate": 0.2,
+    "seed": 20290724,
+    "strength": 1.25,
+    "targets": {
+      "iop": {
+        "eligible": 21,
+        "hidden": 3,
+        "realized_rate": 0.14285714285714285,
+        "mean_probability": 0.20000000000000004,
+        "score": "value-dependent self-masking"
+      },
+      "visual_acuity": {
+        "eligible": 23,
+        "hidden": 7,
+        "realized_rate": 0.30434782608695654,
+        "mean_probability": 0.2,
+        "score": "value-dependent self-masking"
+      },
+      "diagnosis": {
+        "eligible": 24,
+        "hidden": 4,
+        "realized_rate": 0.16666666666666666,
+        "mean_probability": 0.20000000000000004,
+        "score": "value-dependent self-masking"
+      },
+      "followup_status": {
+        "eligible": 22,
+        "hidden": 5,
+        "realized_rate": 0.22727272727272727,
+        "mean_probability": 0.19999999999999993,
+        "score": "value-dependent self-masking"
+      }
+    }
+  },
+  {
+    "mechanism": "mnar",
+    "requested_rate": 0.2,
+    "seed": 20290725,
+    "strength": 1.25,
+    "targets": {
+      "iop": {
+        "eligible": 21,
+        "hidden": 5,
+        "realized_rate": 0.23809523809523808,
+        "mean_probability": 0.20000000000000004,
+        "score": "value-dependent self-masking"
+      },
+      "visual_acuity": {
+        "eligible": 23,
+        "hidden": 5,
+        "realized_rate": 0.21739130434782608,
+        "mean_probability": 0.2,
+        "score": "value-dependent self-masking"
+      },
+      "diagnosis": {
+        "eligible": 24,
+        "hidden": 3,
+        "realized_rate": 0.125,
+        "mean_probability": 0.20000000000000004,
+        "score": "value-dependent self-masking"
+      },
+      "followup_status": {
+        "eligible": 22,
+        "hidden": 6,
+        "realized_rate": 0.2727272727272727,
+        "mean_probability": 0.19999999999999993,
+        "score": "value-dependent self-masking"
+      }
+    }
+  }
+]
