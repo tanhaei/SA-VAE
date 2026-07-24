@@ -55,6 +55,7 @@ class ClinicalBERTTextEncoder:
         max_length: int = 256,
         batch_size: int = 8,
         device: str = "cpu",
+        long_note_strategy: str = "truncate",
     ) -> None:
         try:
             import torch
@@ -67,6 +68,10 @@ class ClinicalBERTTextEncoder:
 
         if pooling not in {"mean", "cls"}:
             raise ValueError("pooling must be 'mean' or 'cls'")
+        if long_note_strategy not in {"truncate", "segment_mean"}:
+            raise ValueError(
+                "long_note_strategy must be 'truncate' or 'segment_mean'"
+            )
         self._torch = torch
         self._tokenizer = AutoTokenizer.from_pretrained(model_id)
         self._model = AutoModel.from_pretrained(model_id).to(device)
@@ -75,12 +80,15 @@ class ClinicalBERTTextEncoder:
         self.max_length = int(max_length)
         self.batch_size = int(batch_size)
         self.device = device
+        self.long_note_strategy = long_note_strategy
         self.dimension = int(self._model.config.hidden_size)
 
     def transform(self, texts: Iterable[str]) -> np.ndarray:  # pragma: no cover - optional
         values = ["" if text is None else str(text) for text in texts]
+        if self.long_note_strategy == "segment_mean":
+            return self._transform_segmented(values)
+
         chunks: list[np.ndarray] = []
-        torch = self._torch
         for start in range(0, len(values), self.batch_size):
             batch = values[start : start + self.batch_size]
             tokens = self._tokenizer(
@@ -90,16 +98,49 @@ class ClinicalBERTTextEncoder:
                 max_length=self.max_length,
                 return_tensors="pt",
             )
-            tokens = {key: value.to(self.device) for key, value in tokens.items()}
-            with torch.no_grad():
-                hidden = self._model(**tokens).last_hidden_state
-                if self.pooling == "cls":
-                    pooled = hidden[:, 0, :]
-                else:
-                    attention = tokens["attention_mask"].unsqueeze(-1)
-                    pooled = (hidden * attention).sum(dim=1) / attention.sum(dim=1).clamp(min=1)
-            chunks.append(pooled.cpu().numpy().astype(np.float64))
+            chunks.append(self._pool_token_batch(tokens))
         return np.vstack(chunks) if chunks else np.empty((0, self.dimension))
+
+    def _transform_segmented(self, values: list[str]) -> np.ndarray:
+        note_vectors: list[np.ndarray] = []
+        for text in values:
+            tokens = self._tokenizer(
+                text,
+                padding=True,
+                truncation=True,
+                max_length=self.max_length,
+                return_overflowing_tokens=True,
+                return_tensors="pt",
+            )
+            tokens.pop("overflow_to_sample_mapping", None)
+            segment_vectors: list[np.ndarray] = []
+            segment_count = int(tokens["input_ids"].shape[0])
+            for start in range(0, segment_count, self.batch_size):
+                batch_tokens = {
+                    key: value[start : start + self.batch_size]
+                    for key, value in tokens.items()
+                }
+                segment_vectors.append(self._pool_token_batch(batch_tokens))
+            note_vectors.append(np.vstack(segment_vectors).mean(axis=0))
+        return (
+            np.vstack(note_vectors)
+            if note_vectors
+            else np.empty((0, self.dimension), dtype=np.float64)
+        )
+
+    def _pool_token_batch(self, tokens) -> np.ndarray:
+        torch = self._torch
+        tokens = {key: value.to(self.device) for key, value in tokens.items()}
+        with torch.no_grad():
+            hidden = self._model(**tokens).last_hidden_state
+            if self.pooling == "cls":
+                pooled = hidden[:, 0, :]
+            else:
+                attention = tokens["attention_mask"].unsqueeze(-1)
+                pooled = (hidden * attention).sum(dim=1) / attention.sum(dim=1).clamp(
+                    min=1
+                )
+        return pooled.cpu().numpy().astype(np.float64)
 
 
 def build_text_encoder(config: dict) -> TextEncoder | None:
@@ -118,6 +159,6 @@ def build_text_encoder(config: dict) -> TextEncoder | None:
             max_length=int(config.get("max_length", 256)),
             batch_size=int(config.get("batch_size", 8)),
             device=str(config.get("device", "cpu")),
+            long_note_strategy=str(config.get("long_note_strategy", "truncate")),
         )
     raise ValueError(f"Unknown text backend: {backend}")
-

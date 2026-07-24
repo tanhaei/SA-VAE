@@ -25,7 +25,7 @@ from .baselines import (
     RawKNNImputer,
     SupervisedTreeImputer,
 )
-from .config import output_directory
+from .config import evaluation_mask_rates, evaluation_mask_seeds, output_directory
 from .data import DatasetSpec, load_dataset, patient_disjoint_split
 from .metrics import score_predictions, summarize_metrics
 from .missingness import apply_evaluation_mask
@@ -136,6 +136,9 @@ def run_experiment(config: dict[str, Any]) -> ExperimentArtifacts:
             seed=seed,
             n_estimators=int(tree_config.get("n_estimators", 100)),
             max_depth=tree_config.get("max_depth"),
+            learning_rate=float(tree_config.get("learning_rate", 0.05)),
+            subsample=float(tree_config.get("subsample", 1.0)),
+            colsample_bytree=float(tree_config.get("colsample_bytree", 1.0)),
         )
         start = time.perf_counter()
         try:
@@ -158,120 +161,131 @@ def run_experiment(config: dict[str, Any]) -> ExperimentArtifacts:
     prediction_timings: dict[str, list[float]] = {}
     evaluation = config["evaluation"]
     mechanisms = list(evaluation.get("mechanisms", [evaluation.get("mechanism", "mcar")]))
-    repeats = int(evaluation["repeats"])
-    mask_rate = float(evaluation["mask_rate"])
+    mask_rates = evaluation_mask_rates(config)
+    masking_seeds = evaluation_mask_seeds(config)
     mar_drivers = list(evaluation.get("mar_drivers", []))
+    mar_driver_weights = evaluation.get("mar_driver_weights")
     strength = float(evaluation.get("masking_strength", 1.25))
     neighbor_config = config.get("neighbors", {})
 
-    for mechanism_index, mechanism in enumerate(mechanisms):
-        for repeat in range(repeats):
-            mask_seed = seed + 10_000 * (mechanism_index + 1) + repeat
-            masking = apply_evaluation_mask(
-                frame=test,
-                targets=targets,
-                mechanism=mechanism,
-                rate=mask_rate,
-                seed=mask_seed,
-                mar_drivers=mar_drivers,
-                strength=strength,
-            )
-            masking_metadata.append(masking.metadata)
-            query_encoded = preprocessor.transform(masking.masked_frame)
-            predictions: dict[str, dict[str, np.ndarray]] = {}
+    for mechanism in mechanisms:
+        for mask_rate in mask_rates:
+            for repeat, mask_seed in enumerate(masking_seeds):
+                masking = apply_evaluation_mask(
+                    frame=test,
+                    targets=targets,
+                    mechanism=mechanism,
+                    rate=mask_rate,
+                    seed=mask_seed,
+                    mar_drivers=mar_drivers,
+                    mar_driver_weights=mar_driver_weights,
+                    strength=strength,
+                )
+                masking_metadata.append(masking.metadata)
+                query_encoded = preprocessor.transform(masking.masked_frame)
+                predictions: dict[str, dict[str, np.ndarray]] = {}
 
-            for baseline_name, baseline in fitted_baselines.items():
-                start = time.perf_counter()
-                if baseline_name == "mean_mode":
-                    method_predictions = baseline.predict(len(test), targets)
-                elif baseline_name == "knn":
-                    method_predictions = baseline.predict(
-                        train, train_encoded, query_encoded, targets
+                for baseline_name, baseline in fitted_baselines.items():
+                    start = time.perf_counter()
+                    if baseline_name == "mean_mode":
+                        method_predictions = baseline.predict(len(test), targets)
+                    elif baseline_name == "knn":
+                        method_predictions = baseline.predict(
+                            train, train_encoded, query_encoded, targets
+                        )
+                    else:
+                        method_predictions = baseline.predict(query_encoded, targets)
+                    prediction_timings.setdefault(baseline_name, []).append(
+                        time.perf_counter() - start
                     )
-                else:
-                    method_predictions = baseline.predict(query_encoded, targets)
-                prediction_timings.setdefault(baseline_name, []).append(
-                    time.perf_counter() - start
-                )
-                predictions[baseline_name] = method_predictions
+                    predictions[baseline_name] = method_predictions
 
-            plain_vae = PlainVAEImputer(model, preprocessor)
-            start = time.perf_counter()
-            predictions["plain_vae"] = plain_vae.predict(query_encoded, targets)
-            prediction_timings.setdefault("plain_vae", []).append(
-                time.perf_counter() - start
-            )
-
-            latent_imputer = LatentNeighborImputer(
-                model=model,
-                preprocessor=preprocessor,
-                k=int(neighbor_config.get("k", 5)),
-                temperature=float(neighbor_config.get("temperature", 0.2)),
-            )
-            start = time.perf_counter()
-            sa_predictions, explanations = latent_imputer.predict(
-                train_frame=train,
-                train_encoded=train_encoded,
-                query_encoded=query_encoded,
-                targets=targets,
-                explain_limit=int(evaluation.get("explain_limit", 3)) if repeat == 0 else 0,
-            )
-            prediction_timings.setdefault("sa_vae", []).append(time.perf_counter() - start)
-            predictions["sa_vae"] = sa_predictions
-            if repeat == 0:
-                explanation_records.extend(
-                    {
-                        **explanation.as_dict(),
-                        "mechanism": mechanism,
-                        "repeat": repeat,
-                    }
-                    for explanation in explanations
-                )
-
-            if (
-                structured_model is not None
-                and structured_preprocessor is not None
-                and structured_train_encoded is not None
-            ):
-                structured_query = structured_preprocessor.transform(masking.masked_frame)
+                plain_vae = PlainVAEImputer(model, preprocessor)
                 start = time.perf_counter()
-                predictions["plain_vae_structured"] = PlainVAEImputer(
-                    structured_model, structured_preprocessor
-                ).predict(structured_query, targets)
-                prediction_timings.setdefault("plain_vae_structured", []).append(
+                predictions["plain_vae"] = plain_vae.predict(query_encoded, targets)
+                prediction_timings.setdefault("plain_vae", []).append(
                     time.perf_counter() - start
                 )
 
-                structured_similarity = LatentNeighborImputer(
-                    model=structured_model,
-                    preprocessor=structured_preprocessor,
+                latent_imputer = LatentNeighborImputer(
+                    model=model,
+                    preprocessor=preprocessor,
                     k=int(neighbor_config.get("k", 5)),
                     temperature=float(neighbor_config.get("temperature", 0.2)),
                 )
                 start = time.perf_counter()
-                structured_predictions, _ = structured_similarity.predict(
+                sa_predictions, explanations = latent_imputer.predict(
                     train_frame=train,
-                    train_encoded=structured_train_encoded,
-                    query_encoded=structured_query,
+                    train_encoded=train_encoded,
+                    query_encoded=query_encoded,
                     targets=targets,
-                    explain_limit=0,
+                    explain_limit=(
+                        int(evaluation.get("explain_limit", 3)) if repeat == 0 else 0
+                    ),
                 )
-                prediction_timings.setdefault("sa_vae_structured", []).append(
+                prediction_timings.setdefault("sa_vae", []).append(
                     time.perf_counter() - start
                 )
-                predictions["sa_vae_structured"] = structured_predictions
+                predictions["sa_vae"] = sa_predictions
+                if repeat == 0:
+                    explanation_records.extend(
+                        {
+                            **explanation.as_dict(),
+                            "mechanism": mechanism,
+                            "mask_rate": float(mask_rate),
+                            "mask_seed": int(mask_seed),
+                            "repeat": repeat,
+                        }
+                        for explanation in explanations
+                    )
 
-            metric_rows.extend(
-                score_predictions(
-                    truth=test,
-                    evaluation_mask=masking.evaluation_mask,
-                    predictions=predictions,
-                    spec=spec,
-                    repeat=repeat,
-                    mechanism=mechanism,
-                    mask_rate=mask_rate,
+                if (
+                    structured_model is not None
+                    and structured_preprocessor is not None
+                    and structured_train_encoded is not None
+                ):
+                    structured_query = structured_preprocessor.transform(
+                        masking.masked_frame
+                    )
+                    start = time.perf_counter()
+                    predictions["plain_vae_structured"] = PlainVAEImputer(
+                        structured_model, structured_preprocessor
+                    ).predict(structured_query, targets)
+                    prediction_timings.setdefault("plain_vae_structured", []).append(
+                        time.perf_counter() - start
+                    )
+
+                    structured_similarity = LatentNeighborImputer(
+                        model=structured_model,
+                        preprocessor=structured_preprocessor,
+                        k=int(neighbor_config.get("k", 5)),
+                        temperature=float(neighbor_config.get("temperature", 0.2)),
+                    )
+                    start = time.perf_counter()
+                    structured_predictions, _ = structured_similarity.predict(
+                        train_frame=train,
+                        train_encoded=structured_train_encoded,
+                        query_encoded=structured_query,
+                        targets=targets,
+                        explain_limit=0,
+                    )
+                    prediction_timings.setdefault("sa_vae_structured", []).append(
+                        time.perf_counter() - start
+                    )
+                    predictions["sa_vae_structured"] = structured_predictions
+
+                metric_rows.extend(
+                    score_predictions(
+                        truth=test,
+                        evaluation_mask=masking.evaluation_mask,
+                        predictions=predictions,
+                        spec=spec,
+                        repeat=repeat,
+                        mask_seed=mask_seed,
+                        mechanism=mechanism,
+                        mask_rate=mask_rate,
+                    )
                 )
-            )
 
     efficiency_rows: list[dict] = []
     for method in sorted(set(training_efficiency) | set(prediction_timings)):
@@ -295,7 +309,12 @@ def run_experiment(config: dict[str, Any]) -> ExperimentArtifacts:
 
     metrics = pd.DataFrame(metric_rows)
     summary = summarize_metrics(metrics)
-    statistics = paired_wilcoxon_table(metrics, proposed_method="sa_vae")
+    statistics = paired_wilcoxon_table(
+        metrics,
+        proposed_method="sa_vae",
+        bootstrap_iterations=int(evaluation.get("bootstrap_iterations", 20_000)),
+        bootstrap_seed=seed,
+    )
     efficiency = pd.DataFrame(efficiency_rows)
 
     output_dir = output_directory(config)
@@ -344,6 +363,7 @@ def _build_vae(
         hidden_dimension=int(model_config.get("hidden_dimension", 32)),
         latent_dimension=int(model_config.get("latent_dimension", 8)),
         beta=float(model_config.get("beta", 0.01)),
+        categorical_weight=float(model_config.get("categorical_weight", 1.0)),
         learning_rate=float(model_config.get("learning_rate", 0.01)),
         batch_size=int(model_config.get("batch_size", 32)),
         max_epochs=int(model_config.get("max_epochs", 50)),
@@ -428,13 +448,25 @@ def _write_artifacts(
             "metric_rows": int(len(metrics)),
             "methods": sorted(metrics["method"].unique().tolist()),
             "mechanisms": sorted(metrics["mechanism"].unique().tolist()),
+            "mask_rates": sorted(
+                float(value) for value in metrics["mask_rate"].unique().tolist()
+            ),
+            "masking_seeds": sorted(
+                int(value) for value in metrics["mask_seed"].unique().tolist()
+            ),
+            "implementation": {
+                "vae_backend": "NumPy reference implementation",
+                "clinical_result_reproduction": False,
+            },
             "structured_vae_best_epoch": (
                 structured_model.best_epoch if structured_model is not None else None
             ),
             "skipped_methods": skipped_methods,
             "result_scope": (
-                "Synthetic smoke-test output unless data.source points to an authorized "
-                "MIMIC-IV or BioArc extract. It is not a reproduction of manuscript numbers."
+                "Output from the resolved configuration. Synthetic runs validate software "
+                "behavior only. A clinical run must not be labeled a reproduction of the "
+                "manuscript without matching data provenance, masks, checkpoints, and "
+                "per-seed prediction artifacts."
             ),
         },
     )

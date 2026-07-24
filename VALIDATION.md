@@ -11,16 +11,18 @@ bash scripts/smoke_test.sh
 ## Checks passed
 
 - all Python source, test, and script files compiled;
-- 8 unit/integration tests passed;
+- 11 unit/integration tests passed;
 - patient-disjoint splitting and training-only categorical vocabularies passed;
-- MCAR/MAR/MNAR masking invariants and probability calibration passed;
+- MCAR/MAR/MNAR masking invariants, weighted-MAR metadata, and probability
+  calibration passed;
 - cosine similarity and normalized neighbor-weight tests passed;
 - the NumPy VAE trained and produced finite latent/reconstruction arrays;
 - the end-to-end pipeline completed;
 - 576 finite metric rows were generated for 8 methods;
 - Accuracy, macro-Precision, macro-Recall, macro-F1, MAE, and RMSE were checked;
 - 24 donor explanations had positive weights summing to one;
-- 126 paired statistical comparisons had valid raw and Holm-adjusted p-values;
+- 126 seed-level paired statistical comparisons had valid cluster-bootstrap
+  intervals and raw/Holm-adjusted p-values;
 - method lists agreed across metrics, efficiency data, and run metadata;
 - partition record/patient counts agreed with cohort totals;
 - every required CSV, JSON, YAML, and PNG artifact was present and non-empty.

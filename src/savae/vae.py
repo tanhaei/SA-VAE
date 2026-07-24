@@ -35,6 +35,7 @@ class NumpyVAE:
         hidden_dimension: int = 32,
         latent_dimension: int = 8,
         beta: float = 0.01,
+        categorical_weight: float = 1.0,
         learning_rate: float = 0.01,
         batch_size: int = 32,
         max_epochs: int = 50,
@@ -47,6 +48,8 @@ class NumpyVAE:
             raise ValueError("Model dimensions must be positive")
         if not 0 <= denoising_rate < 1:
             raise ValueError("denoising_rate must be in [0, 1)")
+        if categorical_weight <= 0:
+            raise ValueError("categorical_weight must be positive")
         self.output_dimension = int(output_dimension)
         self.text_dimension = int(text_dimension)
         self.input_dimension = 2 * self.output_dimension + self.text_dimension
@@ -55,6 +58,7 @@ class NumpyVAE:
         self.hidden_dimension = int(hidden_dimension)
         self.latent_dimension = int(latent_dimension)
         self.beta = float(beta)
+        self.categorical_weight = float(categorical_weight)
         self.learning_rate = float(learning_rate)
         self.batch_size = int(batch_size)
         self.max_epochs = int(max_epochs)
@@ -294,13 +298,13 @@ class NumpyVAE:
             row_mask = target_mask[:, group_slice.start]
             probabilities = _softmax(logits[:, group_slice])
             targets = target_values[:, group_slice]
-            loss_sum -= float(
+            loss_sum -= self.categorical_weight * float(
                 np.sum(row_mask[:, None] * targets * np.log(probabilities + 1e-12))
             )
-            output_gradient[:, group_slice] = (
+            output_gradient[:, group_slice] = self.categorical_weight * (
                 row_mask[:, None] * (probabilities - targets)
             )
-            observed_units += float(row_mask.sum())
+            observed_units += self.categorical_weight * float(row_mask.sum())
 
         denominator = max(observed_units, 1.0)
         return loss_sum / denominator, output_gradient / denominator
@@ -362,4 +366,3 @@ def _softmax(logits: np.ndarray) -> np.ndarray:
     shifted = logits - np.max(logits, axis=1, keepdims=True)
     exponentiated = np.exp(np.clip(shifted, -60.0, 60.0))
     return exponentiated / np.sum(exponentiated, axis=1, keepdims=True)
-

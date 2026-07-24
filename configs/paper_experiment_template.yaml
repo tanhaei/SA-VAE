@@ -23,19 +23,20 @@ columns:
     - REPLACE_CATEGORICAL_FIELD_1
 
 text:
-  # The manuscript did not identify the exact checkpoint. Verify it before use.
   backend: clinicalbert
-  model_id: REPLACE_WITH_VERIFIED_CLINICALBERT_CHECKPOINT
+  model_id: emilyalsentzer/Bio_ClinicalBERT
   pooling: mean
   max_length: 256
   batch_size: 8
   device: cpu
+  long_note_strategy: segment_mean
 
 model:
   # Replace candidate/selected values with settings from the experiment log.
   hidden_dimension: 128
   latent_dimension: 32
   beta: 0.01
+  categorical_weight: 1.0
   learning_rate: 0.001
   batch_size: 128
   max_epochs: 200
@@ -58,6 +59,9 @@ baselines:
   xgboost:
     n_estimators: 500
     max_depth: 8
+    learning_rate: 0.05
+    subsample: 0.8
+    colsample_bytree: 0.8
 
 ablation:
   structured_only: true
@@ -67,12 +71,34 @@ evaluation:
     - mcar
     - mar
     - mnar
-  mask_rate: 0.20
+  mask_rates:
+    - 0.10
+    - 0.20
+    - 0.30
   masking_strength: 1.25
   repeats: 10
+  masking_seeds:
+    - 17
+    - 29
+    - 43
+    - 59
+    - 71
+    - 89
+    - 101
+    - 113
+    - 127
+    - 149
   mar_drivers:
-    - REPLACE_OBSERVED_DRIVER_1
-    - REPLACE_OBSERVED_DRIVER_2
+    - age
+    - sex
+    - acuity
+    - observed_fraction
+  mar_driver_weights:
+    - 0.35
+    - 0.15
+    - 0.50
+    - -0.40
+  bootstrap_iterations: 20000
   baselines:
     - mean_mode
     - knn

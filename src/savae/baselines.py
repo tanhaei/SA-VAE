@@ -125,12 +125,22 @@ class SupervisedTreeImputer:
         seed: int = 17,
         n_estimators: int = 100,
         max_depth: int | None = None,
+        learning_rate: float = 0.05,
+        subsample: float = 1.0,
+        colsample_bytree: float = 1.0,
     ) -> None:
         self.preprocessor = preprocessor
         self.kind = kind
         self.seed = int(seed)
         self.n_estimators = int(n_estimators)
         self.max_depth = max_depth
+        self.learning_rate = float(learning_rate)
+        self.subsample = float(subsample)
+        self.colsample_bytree = float(colsample_bytree)
+        if self.learning_rate <= 0:
+            raise ValueError("learning_rate must be positive")
+        if not 0 < self.subsample <= 1 or not 0 < self.colsample_bytree <= 1:
+            raise ValueError("XGBoost sampling fractions must be in (0, 1]")
         self.name = kind
         self.models: dict[str, _FittedSupervisedTarget] = {}
 
@@ -209,7 +219,9 @@ class SupervisedTreeImputer:
             return XGBRegressor(
                 n_estimators=self.n_estimators,
                 max_depth=self.max_depth or 6,
-                learning_rate=0.05,
+                learning_rate=self.learning_rate,
+                subsample=self.subsample,
+                colsample_bytree=self.colsample_bytree,
                 objective="reg:squarederror",
                 random_state=self.seed,
                 n_jobs=1,
@@ -242,7 +254,9 @@ class SupervisedTreeImputer:
             return XGBClassifier(
                 n_estimators=self.n_estimators,
                 max_depth=self.max_depth or 6,
-                learning_rate=0.05,
+                learning_rate=self.learning_rate,
+                subsample=self.subsample,
+                colsample_bytree=self.colsample_bytree,
                 objective="multi:softprob",
                 random_state=self.seed,
                 n_jobs=1,
@@ -255,4 +269,3 @@ def _euclidean_distance_matrix(queries: np.ndarray, donors: np.ndarray) -> np.nd
     donor_squared = np.sum(donors**2, axis=1, keepdims=True).T
     squared = np.maximum(query_squared + donor_squared - 2.0 * queries @ donors.T, 0.0)
     return np.sqrt(squared)
-

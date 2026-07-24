@@ -1,18 +1,19 @@
 cff-version: 1.2.0
 message: "If you use this code, please cite the associated manuscript."
-title: "SA-VAE EHR Imputation: Reproducible Experiment Code"
+title: "SA-VAE: Reference implementation for EHR missing-value imputation"
 type: software
 version: 0.1.0
 date-released: 2026-07-24
 license: MIT
 authors:
-  - name: "Paper authors"
-repository-code: "https://github.com/REPLACE_WITH_OWNER/savae-ehr-imputation"
+  - family-names: "Tanhaei"
+    given-names: "Mohammad"
+repository-code: "https://github.com/tanhaei/SA-VAE"
 preferred-citation:
   type: article
-  title: "Similarity-Augmented Variational Autoencoder for Missing Value Imputation in Electronic Health Records: Application to Ophthalmology Records in a Real-World Hospital System"
+  title: "Similarity-Augmented Variational Autoencoder for Missing-Value Imputation in Electronic Health Records: Evaluation on MIMIC-IV and Real-World Ophthalmology Records"
   authors:
-    - name: "REPLACE WITH MANUSCRIPT AUTHORS"
+    - family-names: "Tanhaei"
+      given-names: "Mohammad"
   year: 2026
   journal: "Measurement"
-

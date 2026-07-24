@@ -23,6 +23,7 @@ def apply_evaluation_mask(
     rate: float,
     seed: int,
     mar_drivers: list[str] | tuple[str, ...] | None = None,
+    mar_driver_weights: list[float] | tuple[float, ...] | None = None,
     strength: float = 1.25,
 ) -> MaskingResult:
     """Hide originally observed target entries without destroying ground truth.
@@ -56,12 +57,22 @@ def apply_evaluation_mask(
             drivers = [column for column in (mar_drivers or []) if column != target]
             if not drivers:
                 drivers = [column for column in frame.columns if column != target][:2]
-            scores = _combined_observed_driver_score(frame.loc[:, drivers])
+            weights = _weights_for_selected_drivers(
+                declared_drivers=list(mar_drivers or []),
+                selected_drivers=drivers,
+                declared_weights=mar_driver_weights,
+            )
+            scores = _combined_observed_driver_score(
+                frame.loc[:, drivers],
+                weights=weights,
+            )
             eligible_scores = scores[eligible_indices]
             eligible_probabilities = _calibrated_probabilities(
                 eligible_scores, target_rate=rate, strength=strength
             )
-            score_description = f"observed drivers: {drivers}"
+            score_description = (
+                f"observed drivers: {drivers}; standardized weights: {weights.tolist()}"
+            )
         else:
             target_scores = _target_value_score(frame[target])
             eligible_scores = target_scores[eligible_indices]
@@ -105,7 +116,26 @@ def apply_evaluation_mask(
     )
 
 
-def _combined_observed_driver_score(drivers: pd.DataFrame) -> np.ndarray:
+def _weights_for_selected_drivers(
+    declared_drivers: list[str],
+    selected_drivers: list[str],
+    declared_weights: list[float] | tuple[float, ...] | None,
+) -> np.ndarray:
+    if declared_weights is None:
+        return np.ones(len(selected_drivers), dtype=np.float64)
+    if len(declared_weights) != len(declared_drivers):
+        raise ValueError("mar_driver_weights must match mar_drivers")
+    mapping = {
+        driver: float(weight)
+        for driver, weight in zip(declared_drivers, declared_weights)
+    }
+    return np.asarray([mapping[driver] for driver in selected_drivers], dtype=np.float64)
+
+
+def _combined_observed_driver_score(
+    drivers: pd.DataFrame,
+    weights: np.ndarray | None = None,
+) -> np.ndarray:
     components: list[np.ndarray] = []
     for column in drivers.columns:
         series = drivers[column]
@@ -125,7 +155,16 @@ def _combined_observed_driver_score(drivers: pd.DataFrame) -> np.ndarray:
         components.append(_standardize(values))
     if not components:
         return np.zeros(len(drivers), dtype=np.float64)
-    return np.mean(np.column_stack(components), axis=1)
+    matrix = np.column_stack(components)
+    if weights is None:
+        weights = np.ones(matrix.shape[1], dtype=np.float64)
+    weights = np.asarray(weights, dtype=np.float64)
+    if weights.shape != (matrix.shape[1],):
+        raise ValueError("MAR driver weights do not match the driver matrix")
+    scale = float(np.sum(np.abs(weights)))
+    if scale <= 0:
+        raise ValueError("At least one MAR driver weight must be non-zero")
+    return matrix @ (weights / scale)
 
 
 def _target_value_score(series: pd.Series) -> np.ndarray:

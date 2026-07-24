@@ -11,7 +11,7 @@ or admission) and a stable patient identifier used only for group splitting.
 | Continuous fields | Parseable numeric values; missing values left blank/NA |
 | Categorical fields | Strings or codes treated as nominal categories |
 | Targets | Subset of continuous and categorical fields |
-| Note text | Optional string column |
+| Note text | Optional string column containing only documentation available by the target-specific index time |
 
 The exact column names are declared in the YAML configuration, not hard-coded.
 
@@ -34,6 +34,9 @@ P00002,V002,52,,0.10,normal,discharged,"Stable examination."
 5. Keep protected extracts under `data/private/`, which is ignored by Git.
 6. Record extraction dates, inclusion/exclusion criteria, units, coding
    systems, and natural missingness in the manuscript and a data dictionary.
+7. Define an index time for every imputation target. Exclude note text entered
+   after that time and audit retained notes for direct disclosure of the hidden
+   target. The runner cannot infer a safe temporal cutoff from a text column.
 
 ## MIMIC-IV
 
@@ -46,4 +49,3 @@ MIMIC-IV.
 BioArc data are private operational records. Use requires the applicable ethics,
 institutional, and data-governance approvals. This repository contains no
 BioArc records.
-

@@ -25,7 +25,8 @@ uses:
 
 - the reparameterization trick;
 - continuous squared-error loss over observed entries;
-- categorical softmax cross-entropy over observed categorical groups;
+- categorical softmax cross-entropy over observed categorical groups, weighted
+  by `categorical_weight`;
 - KL regularization controlled by `beta`;
 - random denoising of observed input entries while retaining their values as
   reconstruction targets;
@@ -52,24 +53,31 @@ This prevents the target itself from determining donor selection.
 ## 4. Missingness simulations
 
 - **MCAR:** constant hiding probability.
-- **MAR:** logistic hiding probability based only on declared observed drivers.
+- **MAR:** logistic hiding probability based only on declared, standardized
+  observed drivers; optional signed driver weights are normalized by their
+  absolute sum.
 - **MNAR:** logistic self-masking probability based on the target value.
 
 The intercept is calibrated numerically so the mean masking probability matches
-the requested rate. The realized finite-sample rate and probability metadata
-are saved for every target and repeat.
+each requested rate. One config may declare multiple rates and an explicit list
+of masking seeds. The realized finite-sample rate, seed, driver description,
+and probability metadata are saved for every target and repeat.
 
 Natural missing values remain unscored because their true values are unknown.
 
 ## 5. Statistical analysis
 
-Metrics are paired by target and masking repeat. For each baseline:
+Field-level metrics are paired by target and masking seed. Before inference,
+the target-level effects within each seed are averaged with equal field weight;
+the masking seed is therefore the independent paired unit. For each baseline:
 
 - accuracy/macro-precision/macro-recall/macro-F1 differences are proposed
   minus baseline;
 - MAE/RMSE differences are baseline minus proposed;
 - positive effects therefore favor SA-VAE;
-- a two-sided Wilcoxon signed-rank test is applied;
+- a two-sided Wilcoxon signed-rank test is applied to seed-level effects;
+- a 95% cluster-bootstrap interval resamples masking seeds, retaining all
+  within-seed target dependence;
 - comparisons within each metric/mechanism/rate family receive Holm correction.
 
 Smoke runs are intentionally too small for scientific inference. Use at least

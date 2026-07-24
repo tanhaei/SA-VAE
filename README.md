@@ -3,21 +3,22 @@
 Reproducible Python code accompanying the manuscript:
 
 > **Similarity-Augmented Variational Autoencoder for Missing Value Imputation
-> in Electronic Health Records: Application to Ophthalmology Records in a
-> Real-World Hospital System**
+> in Electronic Health Records: Evaluation on MIMIC-IV and Real-World
+> Ophthalmology Records**
 
 The repository implements a mask-aware Variational Autoencoder (VAE), explicit
 patient-similarity weighting in the learned latent space, mixed continuous and
 categorical evaluation, patient-disjoint splitting, controlled MCAR/MAR/MNAR
 test masking, ablations, baseline comparisons, efficiency measurements, and
-paired Wilcoxon tests with Holm correction.
+seed-level paired Wilcoxon tests, cluster-bootstrap intervals, and Holm
+correction.
 
 ## Reproducibility status
 
-The code and synthetic smoke test are executable. The supplied manuscript did
-**not** include the underlying MIMIC-IV/BioArc extracts, exact target-field
-definitions, trained checkpoints, masking seeds, selected hyperparameters, or
-per-run predictions. Therefore:
+The code and synthetic smoke test are executable. The supplied manuscript
+materials did **not** include the underlying MIMIC-IV/BioArc extracts, trained
+checkpoints, fixed clinical evaluation masks, per-seed predictions, or original
+profiler logs. Therefore:
 
 - the checked-in smoke results use **synthetic, non-clinical data**;
 - they verify software behavior, not scientific performance;
@@ -26,18 +27,18 @@ per-run predictions. Therefore:
   **reported but not independently reproduced**;
 - no real patient data or protected health information is included.
 
-### Results reported in the supplied manuscript
+### Descriptive results reported in the supplied manuscript
 
-| Dataset | Records | Reported accuracy | Reported RMSE | Status here |
-|---|---:|---:|---:|---|
-| MIMIC-IV | 10,000 | 85% | 1.6 | Documentary reference only |
-| BioArc ophthalmology | 10,000 | 88% | 1.4 | Documentary reference only |
+| Dataset | Unit | Reported accuracy | Reported macro-F1 | Reported standardized RMSE | Status here |
+|---|---|---:|---:|---:|---|
+| MIMIC-IV | 10,000 admissions / 8,214 patients | 85% | 83% | 0.640 | Documentary only |
+| BioArc | 10,000 visits / 6,782 patients | 88% | 86% | 0.560 | Documentary only |
 
-The manuscript describes an 80/10/10 patient-data split, five-fold
-cross-validated grid search, and evaluation under an MNAR assumption. It does
-not provide the exact field extraction, missingness masks, random seeds, grid,
-selected hyperparameters, or fold-level predictions needed to reconstruct
-those runs exactly. The full reported comparison table is preserved in
+The manuscript describes an 80/10/10 patient-disjoint split, ten declared
+masking seeds, and MCAR/MAR/controlled-MNAR evaluation at 10%, 20%, and 30%.
+The headline table values are for 20% controlled MNAR. The clinical prediction
+files needed to verify those summaries are not public. The reported values are
+preserved in
 [`paper_reference_results.json`](paper_reference_results.json).
 
 The manuscript also reported a BioArc query time of 0.5 s and RAM use of
@@ -124,13 +125,18 @@ coordinate is not the observed clinical field.
 - Training/inference timing, parameter counts, and process peak RSS.
 - Donor-level explanations containing similarities, normalized weights, and
   observed donor values.
-- Diagnostic two-dimensional PCA visualization of VAE posterior means.
+- Diagnostic two-dimensional PCA visualization of VAE posterior means; it is
+  not presented as evidence of clinical interpretability.
 - Training and inference efficiency plots.
+- Multiple masking rates and explicit masking-seed lists in one run.
+- Optional declared weights for standardized MAR drivers.
+- Seed-level aggregation before Wilcoxon testing, plus a masking-seed cluster
+  bootstrap interval.
 
 GAIN and MIWAE are not silently approximated. They were requested by reviewers,
-but the supplied manuscript contained neither implementations nor settings for
-them, and its result tables did not report them. Add validated implementations
-before retaining any claim of comparison with those methods.
+but validated implementations and run-level outputs were not present in the
+archived study package. Add validated implementations before retaining an
+empirical claim involving those methods.
 
 ## Quick start
 
@@ -148,7 +154,7 @@ The smoke command:
 1. compiles all Python modules;
 2. runs the standard-library unit/integration tests;
 3. trains the NumPy VAE and its structured-only ablation;
-4. evaluates eight methods under MCAR, MAR, and MNAR masks;
+4. evaluates eight executable methods under MCAR, MAR, and MNAR masks;
 5. verifies metric ranges, method coverage, normalized donor weights, patient
    partition counts, statistical p-values, metadata consistency, and all
    required CSV/JSON/PNG artifacts.
@@ -197,8 +203,8 @@ savae run --config configs/smoke.yaml
    [`configs/paper_experiment_template.yaml`](configs/paper_experiment_template.yaml).
 3. Replace every `REPLACE_...` value with the exact extraction/schema details.
 4. List the exact evaluated targets and MAR driver variables.
-5. Verify the ClinicalBERT checkpoint and pooling procedure. The manuscript did
-   not specify them.
+5. Verify that `emilyalsentzer/Bio_ClinicalBERT`, segment-mean pooling, and the
+   note index-time cutoff match the clinical run.
 6. Install optional dependencies if ClinicalBERT or XGBoost is enabled:
 
    ```bash
@@ -257,8 +263,10 @@ output so it cannot be mistaken for the manuscript's clinical results.
 - Naturally missing values do not have directly observable ground truth.
 - Implemented MNAR is a declared value-dependent simulation, not identification
   of the natural EHR missingness process.
-- The exact ClinicalBERT checkpoint, field list, architecture, and
-  hyperparameters were absent from the supplied article.
+- The public reference implementation is a dependency-light NumPy VAE and is
+  not represented as the archived PyTorch clinical-analysis implementation.
+- A note-level index-time cutoff must be enforced upstream; otherwise direct
+  mention of the hidden target in post-index text can cause leakage.
 - MIMIC-IV critical-care data and one ophthalmology setting do not establish
   universal generalizability.
 - Donor visibility is procedural transparency, not a causal clinical
@@ -279,16 +287,10 @@ PYTHONPATH=src python3 scripts/run_experiment.py --config configs/smoke.yaml
 
 GitHub Actions repeats both commands on every push and pull request.
 
-## Publishing to GitHub
+## Repository
 
-```bash
-git init
-git add .
-git commit -m "Initial reproducible SA-VAE experiment repository"
-git branch -M main
-git remote add origin https://github.com/YOUR_ACCOUNT/savae-ehr-imputation.git
-git push -u origin main
-```
+The canonical public repository is
+<https://github.com/tanhaei/SA-VAE>.
 
 ## License
 

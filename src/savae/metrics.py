@@ -22,6 +22,7 @@ def score_predictions(
     predictions: dict[str, dict[str, np.ndarray]],
     spec: DatasetSpec,
     repeat: int,
+    mask_seed: int,
     mechanism: str,
     mask_rate: float,
 ) -> list[dict]:
@@ -86,6 +87,7 @@ def score_predictions(
                         "value": value,
                         "n_masked": n_selected,
                         "repeat": int(repeat),
+                        "mask_seed": int(mask_seed),
                         "mechanism": mechanism,
                         "mask_rate": float(mask_rate),
                     }

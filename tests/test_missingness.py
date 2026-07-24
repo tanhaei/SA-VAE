@@ -58,7 +58,20 @@ class MissingnessTests(unittest.TestCase):
             places=6,
         )
 
+    def test_weighted_mar_records_declared_weights(self) -> None:
+        result = apply_evaluation_mask(
+            self.frame,
+            ["iop"],
+            mechanism="mar",
+            rate=0.2,
+            seed=3,
+            mar_drivers=["age", "diabetes"],
+            mar_driver_weights=[0.7, -0.3],
+        )
+        description = result.metadata["targets"]["iop"]["score"]
+        self.assertIn("standardized weights", description)
+        self.assertIn("-0.3", description)
+
 
 if __name__ == "__main__":
     unittest.main()
-

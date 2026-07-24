@@ -41,6 +41,7 @@ model:
   hidden_dimension: 24
   latent_dimension: 6
   beta: 0.01
+  categorical_weight: 1.0
   learning_rate: 0.01
   batch_size: 32
   max_epochs: 18
@@ -75,6 +76,10 @@ evaluation:
   mar_drivers:
     - age
     - diabetes
+  mar_driver_weights:
+    - 0.65
+    - 0.35
+  bootstrap_iterations: 500
   baselines:
     - mean_mode
     - knn

@@ -107,6 +107,29 @@ def validate(
                 raise AssertionError(
                     f"statistical_tests.csv:{row_number}:{column} outside [0, 1]"
                 )
+        low = _finite(
+            row["bootstrap_ci_low"],
+            f"statistical_tests.csv:{row_number}:bootstrap_ci_low",
+        )
+        high = _finite(
+            row["bootstrap_ci_high"],
+            f"statistical_tests.csv:{row_number}:bootstrap_ci_high",
+        )
+        if low > high:
+            raise AssertionError(
+                f"statistical_tests.csv:{row_number}: bootstrap interval is reversed"
+            )
+        if row["unit_definition"] != "masking_seed_mean_across_targets":
+            raise AssertionError(
+                f"statistical_tests.csv:{row_number}: unexpected inferential unit"
+            )
+
+    metric_seeds = sorted({int(row["mask_seed"]) for row in metrics})
+    metric_rates = sorted({float(row["mask_rate"]) for row in metrics})
+    if sorted(int(value) for value in metadata.get("masking_seeds", [])) != metric_seeds:
+        raise AssertionError("run metadata masking_seeds do not match metrics_long.csv")
+    if sorted(float(value) for value in metadata.get("mask_rates", [])) != metric_rates:
+        raise AssertionError("run metadata mask_rates do not match metrics_long.csv")
 
     explanations = json.loads(
         (output / "neighbor_explanations.json").read_text(encoding="utf-8")

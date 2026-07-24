@@ -1,6 +1,6 @@
 {
   "status": "completed",
-  "elapsed_seconds": 2.000668613000016,
+  "elapsed_seconds": 1.0334272519999104,
   "python": "3.12.13 (main, Mar  3 2026, 14:59:34) [Clang 21.1.4 ]",
   "platform": "Linux-6.12.13-x86_64-with-glibc2.39",
   "versions": {
@@ -27,7 +27,18 @@
     "mcar",
     "mnar"
   ],
+  "mask_rates": [
+    0.2
+  ],
+  "masking_seeds": [
+    20260724,
+    20260725
+  ],
+  "implementation": {
+    "vae_backend": "NumPy reference implementation",
+    "clinical_result_reproduction": false
+  },
   "structured_vae_best_epoch": 16,
   "skipped_methods": {},
-  "result_scope": "Synthetic smoke-test output unless data.source points to an authorized MIMIC-IV or BioArc extract. It is not a reproduction of manuscript numbers."
+  "result_scope": "Output from the resolved configuration. Synthetic runs validate software behavior only. A clinical run must not be labeled a reproduction of the manuscript without matching data provenance, masks, checkpoints, and per-seed prediction artifacts."
 }
